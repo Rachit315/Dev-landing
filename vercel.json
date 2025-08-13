@@ -2,15 +2,15 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "Client/react-pixel-perfect-showcase/package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
       }
-    },
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -28,7 +28,9 @@
   },
   "functions": {
     "api/index.js": {
-      "maxDuration": 10
+      "memory": 1024,
+      "maxDuration": 30
     }
-  }
+  },
+  "buildCommand": "cd Client/react-pixel-perfect-showcase && npm install && npm run build"
 }

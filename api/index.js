@@ -5,16 +5,36 @@ const { MongoClient } = require('mongodb')
 
 const app = express()
 
+// Configure CORS
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://dev-landing-ngab.vercel.app',
+      'http://localhost:3000',
+      'https://dev-landing-ngab.vercel.app',
+      'http://localhost:5173' // Vite default dev server
+    ];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+};
+
 // Enable CORS for all routes
-app.use(cors({
-  origin: ['https://dev-landing-ngab.vercel.app', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}))
+app.use(cors(corsOptions));
 
 // Handle preflight requests
-app.options('*', cors())
+app.options('*', cors(corsOptions));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }))
@@ -109,14 +129,21 @@ app.get('/api/health', async (req, res) => {
 
 // POST /api/quotes — submit a quote
 app.post('/api/quotes', async (req, res) => {
+  console.log('Received request to /api/quotes', { body: req.body });
+  
   try {
     const { quotesCollection } = await getDatabaseConnection()
+    console.log('Database connection successful');
 
     const { name, role, quote } = req.body || {}
+    console.log('Request data:', { name, role, quote });
 
     if (typeof quote !== 'string') {
+      const error = 'Quote is required and must be a string';
+      console.error('Validation error:', error);
       return res.status(400).json({ 
-        error: 'Quote is required and must be a string',
+        success: false,
+        error,
         timestamp: new Date().toISOString()
       })
     }

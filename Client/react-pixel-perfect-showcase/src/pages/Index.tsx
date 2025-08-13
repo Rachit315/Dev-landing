@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import heroIllustration from "@/assets/dev-hero-illustration.png";
-import { Quote, Timer, Feather } from "lucide-react";
+import { Quote, Timer, Feather, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -162,58 +162,45 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Submit */}
-        <section id="submit" className="py-16 md:py-28">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-2">Submit Your Quote</h2>
-            <p className="text-muted-foreground">Share a short, motivating line for fellow developers.</p>
-          </div>
-
-          <div className="max-w-md mx-auto">
-            <Card className="rounded-2xl border-2 border-primary/30 shadow-elegant">
-              <CardContent className="p-6">
-                <form onSubmit={onSubmit} className="space-y-4">
-                  <div>
-                    <Input
-                      placeholder="Your Name (optional)"
-                      aria-label="Your name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      disabled={submitting}
-                    />
+        {/* Submit Section */}
+        <section className="py-16 md:py-24 bg-gradient-to-b from-background to-muted/20">
+          <div className="container mx-auto px-4 text-center">
+            <div className="max-w-3xl mx-auto">
+              <div className="mb-10">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6">
+                  <Quote className="w-10 h-10 text-primary" />
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Share Your Wisdom</h2>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  Have an inspiring quote that motivates developers? Share it with our community!
+                </p>
+              </div>
+              
+              <Button 
+              id="submit"
+                variant="default" 
+                size="lg" 
+                className="px-8 py-6 text-lg font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSegp1G6Oq38hNHsPfcLuho_nKy5rwEhxDBxvcvofogwj71bLw/viewform?usp=dialognk', '_blank')}
+              >
+                <MessageSquareText className="mr-2 h-5 w-5" />
+                Submit Your Quote
+              </Button>
+              
+              <div className="mt-16">
+                <div className="relative w-64 h-64 mx-auto">
+                  <div className="absolute inset-0 bg-primary/10 rounded-2xl transform rotate-6"></div>
+                  <div className="absolute inset-0 bg-primary/5 rounded-2xl transform -rotate-6"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center p-6">
+                      <MessageSquareText className="w-12 h-12 text-primary mx-auto mb-4" />
+                      <h3 className="font-medium text-lg mb-2">Your Quote Here</h3>
+                      <p className="text-muted-foreground text-sm">Inspire fellow developers!</p>
+                    </div>
                   </div>
-                  <div>
-                    <Input
-                      placeholder="Role (optional)"
-                      aria-label="Your role"
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      disabled={submitting}
-                    />
-                  </div>
-                  <div>
-                    <Textarea
-                      placeholder="Your Quote"
-                      aria-label="Your quote"
-                      className="min-h-28"
-                      value={quote}
-                      onChange={(e) => setQuote(e.target.value)}
-                      required
-                      minLength={20}
-                      maxLength={1000}
-                      disabled={submitting}
-                    />
-                    <div className="mt-1 text-xs text-muted-foreground text-right">{quote.trim().length}/1000</div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">By submitting, you confirm you have the right to share this content.</p>
-                  <div className="pt-2">
-                    <Button type="submit" variant="pill" className="w-full" size="lg" disabled={submitting}>
-                      {submitting ? "Sending..." : "Send Quote"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </main>

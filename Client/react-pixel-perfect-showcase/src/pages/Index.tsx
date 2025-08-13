@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 
 const Index = () => {
-  const API_BASE = import.meta.env?.VITE_API_BASE || "http://localhost:3000";
+  const API_BASE = "https://dev-landing-ngab.vercel.app";
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("");

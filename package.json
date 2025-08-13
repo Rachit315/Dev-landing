@@ -1,0 +1,25 @@
+{
+  "name": "landing-page-full-stack",
+  "version": "1.0.0",
+  "description": "Full-stack landing page with React frontend and Express backend",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd Client/react-pixel-perfect-showcase && npm run dev",
+    "dev:server": "cd server && npm start",
+    "build": "cd Client/react-pixel-perfect-showcase && npm run build",
+    "start": "node api/index.js"
+  },
+  "keywords": ["react", "express", "mongodb", "vercel", "fullstack"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "mongodb": "^6.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

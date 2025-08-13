@@ -1,5 +1,4 @@
-// Enhanced Express server for Dev Quotes (Vercel Serverless Compatible)
-require('dotenv').config()
+// Vercel Serverless API Handler
 const express = require('express')
 const cors = require('cors')
 const { MongoClient } = require('mongodb')
@@ -260,30 +259,5 @@ app.use('*', (req, res) => {
     timestamp: new Date().toISOString()
   })
 })
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000
-  
-  // Graceful shutdown for local development
-  process.on('SIGTERM', async () => {
-    console.log('🔄 SIGTERM received, shutting down gracefully...')
-    if (client) await client.close()
-    process.exit(0)
-  })
-
-  process.on('SIGINT', async () => {
-    console.log('🔄 SIGINT received, shutting down gracefully...')
-    if (client) await client.close()
-    process.exit(0)
-  })
-
-  // Start server for local development
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`)
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`)
-    console.log(`📝 API docs: http://localhost:${PORT}/api/`)
-  })
-}
 
 module.exports = app

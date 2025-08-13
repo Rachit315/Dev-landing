@@ -5,11 +5,18 @@ const { MongoClient } = require('mongodb')
 
 const app = express()
 
-// Middleware
+// Enable CORS for all routes
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+  origin: ['https://dev-landing-ngab.vercel.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }))
+
+// Handle preflight requests
+app.options('*', cors())
+
+// Body parsing middleware
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 
@@ -22,10 +29,17 @@ app.use((req, res, next) => {
 // MongoDB connection - Vercel serverless compatible
 let client = null
 let quotesCollection = null
+let connectionPromise = null
 
 async function getDatabaseConnection() {
+  // Check if we already have a connection
   if (client && client.topology && client.topology.isConnected()) {
     return { client, quotesCollection }
+  }
+
+  // If we're already connecting, wait for that to complete
+  if (connectionPromise) {
+    return connectionPromise
   }
 
   const mongoUri = process.env.MONGODB_URI
@@ -34,25 +48,43 @@ async function getDatabaseConnection() {
     throw new Error('MONGODB_URI is not configured')
   }
 
-  try {
-    client = new MongoClient(mongoUri, {
-      maxPoolSize: 1, // Reduced for serverless
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
-    })
-    
-    await client.connect()
-    const databaseName = process.env.MONGODB_DB || 'Dev_quotes'
-    const db = client.db(databaseName)
-    quotesCollection = db.collection('quote_message')
-    
-    console.log(`✅ Connected to MongoDB database: ${databaseName}`)
-    return { client, quotesCollection }
-  } catch (error) {
-    console.error('❌ Failed to connect to MongoDB:', error.message)
-    throw error
-  }
+  // Create a new connection promise
+  connectionPromise = (async () => {
+    try {
+      console.log('🔌 Creating new MongoDB connection...')
+      
+      client = new MongoClient(mongoUri, {
+        maxPoolSize: 1, // Reduced for serverless
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 10000,
+        retryWrites: true,
+        w: 'majority'
+      })
+      
+      await client.connect()
+      const databaseName = process.env.MONGODB_DB || 'Dev_quotes'
+      const db = client.db(databaseName)
+      quotesCollection = db.collection('quote_message')
+      
+      // Test the connection
+      await db.command({ ping: 1 })
+      
+      console.log(`✅ Connected to MongoDB database: ${databaseName}`)
+      return { client, quotesCollection }
+    } catch (error) {
+      console.error('❌ Failed to connect to MongoDB:', error.message)
+      // Reset connection on error to allow retries
+      client = null
+      quotesCollection = null
+      throw error
+    } finally {
+      // Clear the promise so we can reconnect if needed
+      connectionPromise = null
+    }
+  })()
+
+  return connectionPromise
 }
 
 // Health check endpoint

@@ -26,23 +26,46 @@ const Index = () => {
 
     try {
       setSubmitting(true);
-      const res = await fetch(`${API_BASE}/api/quotes`, {
+      console.log('Submitting quote to:', `${API_BASE}/api/quotes`);
+      
+      const response = await fetch(`${API_BASE}/api/quotes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() || undefined, role: role.trim() || undefined, quote: trimmed }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          name: name.trim() || undefined, 
+          role: role.trim() || undefined, 
+          quote: trimmed 
+        }),
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as any).error || "Failed to submit quote");
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('API Error:', errorData);
+        } catch (e) {
+          console.error('Failed to parse error response:', e);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        throw new Error(errorData.message || 'Failed to submit quote');
       }
 
+      const data = await response.json();
+      console.log('Success:', data);
+      
       toast.success("Thanks for your quote! We'll review it soon.");
       setName("");
       setRole("");
       setQuote("");
+      
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
+      console.error('Submission error:', err);
+      const message = err instanceof Error ? err.message : "Failed to submit quote. Please try again.";
       toast.error(message);
     } finally {
       setSubmitting(false);

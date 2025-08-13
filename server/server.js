@@ -1,4 +1,4 @@
-// Enhanced Express server for Dev Quotes
+// Enhanced Express server for Dev Quotes (Vercel Serverless Compatible)
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
@@ -20,31 +20,36 @@ app.use((req, res, next) => {
   next()
 })
 
-// MongoDB connection
-const mongoUri = process.env.MONGODB_URI
-if (!mongoUri) {
-  console.warn('MONGODB_URI is not set. Set it in server/.env before starting the server.')
-}
-
-const client = new MongoClient(mongoUri || 'mongodb://localhost:27017', {
-  maxPoolSize: 10,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-})
+// MongoDB connection - Vercel serverless compatible
+let client = null
 let quotesCollection = null
 
-async function initDatabaseConnection() {
+async function getDatabaseConnection() {
+  if (client && client.topology && client.topology.isConnected()) {
+    return { client, quotesCollection }
+  }
+
+  const mongoUri = process.env.MONGODB_URI
+  if (!mongoUri) {
+    console.warn('MONGODB_URI is not set. Set it in Vercel environment variables.')
+    throw new Error('MONGODB_URI is not configured')
+  }
+
   try {
+    client = new MongoClient(mongoUri, {
+      maxPoolSize: 1, // Reduced for serverless
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+    })
+    
     await client.connect()
     const databaseName = process.env.MONGODB_DB || 'Dev_quotes'
     const db = client.db(databaseName)
     quotesCollection = db.collection('quote_message')
-    console.log(`✅ Connected to MongoDB database: ${databaseName}`)
     
-    // Create indexes for better performance
-    await quotesCollection.createIndex({ created_at: -1 })
-    await quotesCollection.createIndex({ name: 1 })
-    console.log('✅ Database indexes created')
+    console.log(`✅ Connected to MongoDB database: ${databaseName}`)
+    return { client, quotesCollection }
   } catch (error) {
     console.error('❌ Failed to connect to MongoDB:', error.message)
     throw error
@@ -52,24 +57,29 @@ async function initDatabaseConnection() {
 }
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    database: quotesCollection ? 'connected' : 'disconnected',
-    uptime: process.uptime()
-  })
+app.get('/api/health', async (req, res) => {
+  try {
+    const { quotesCollection } = await getDatabaseConnection()
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: quotesCollection ? 'connected' : 'disconnected',
+      uptime: process.uptime()
+    })
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error.message
+    })
+  }
 })
 
 // POST /api/quotes — submit a quote
 app.post('/api/quotes', async (req, res) => {
   try {
-    if (!quotesCollection) {
-      return res.status(503).json({ 
-        error: 'Database not initialized',
-        timestamp: new Date().toISOString()
-      })
-    }
+    const { quotesCollection } = await getDatabaseConnection()
 
     const { name, role, quote } = req.body || {}
 
@@ -120,12 +130,7 @@ app.post('/api/quotes', async (req, res) => {
 // GET /api/quotes — fetch all quotes (newest first)
 app.get('/api/quotes', async (req, res) => {
   try {
-    if (!quotesCollection) {
-      return res.status(503).json({ 
-        error: 'Database not initialized',
-        timestamp: new Date().toISOString()
-      })
-    }
+    const { quotesCollection } = await getDatabaseConnection()
 
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 50
@@ -162,12 +167,7 @@ app.get('/api/quotes', async (req, res) => {
 // GET /api/quotes/:id — fetch a specific quote
 app.get('/api/quotes/:id', async (req, res) => {
   try {
-    if (!quotesCollection) {
-      return res.status(503).json({ 
-        error: 'Database not initialized',
-        timestamp: new Date().toISOString()
-      })
-    }
+    const { quotesCollection } = await getDatabaseConnection()
 
     const { MongoClient } = require('mongodb')
     const ObjectId = MongoClient.ObjectId
@@ -204,12 +204,7 @@ app.get('/api/quotes/:id', async (req, res) => {
 // GET /api/stats — get statistics
 app.get('/api/stats', async (req, res) => {
   try {
-    if (!quotesCollection) {
-      return res.status(503).json({ 
-        error: 'Database not initialized',
-        timestamp: new Date().toISOString()
-      })
-    }
+    const { quotesCollection } = await getDatabaseConnection()
 
     const totalQuotes = await quotesCollection.countDocuments()
     const today = new Date()
@@ -266,33 +261,29 @@ app.use('*', (req, res) => {
   })
 })
 
-const PORT = process.env.PORT || 3000
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('🔄 SIGTERM received, shutting down gracefully...')
-  await client.close()
-  process.exit(0)
-})
-
-process.on('SIGINT', async () => {
-  console.log('🔄 SIGINT received, shutting down gracefully...')
-  await client.close()
-  process.exit(0)
-})
-
-// Start server
-initDatabaseConnection()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`)
-      console.log(`📊 Health check: http://localhost:${PORT}/api/health`)
-      console.log(`📝 API docs: http://localhost:${PORT}/api/`)
-    })
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000
+  
+  // Graceful shutdown for local development
+  process.on('SIGTERM', async () => {
+    console.log('🔄 SIGTERM received, shutting down gracefully...')
+    if (client) await client.close()
+    process.exit(0)
   })
-  .catch((error) => {
-    console.error('❌ Server not started due to DB connection error:', error.message)
-    process.exit(1)
+
+  process.on('SIGINT', async () => {
+    console.log('🔄 SIGINT received, shutting down gracefully...')
+    if (client) await client.close()
+    process.exit(0)
   })
+
+  // Start server for local development
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`)
+    console.log(`📊 Health check: http://localhost:${PORT}/api/health`)
+    console.log(`📝 API docs: http://localhost:${PORT}/api/`)
+  })
+}
 
 module.exports = app

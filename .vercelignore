@@ -1,15 +1,9 @@
-node_modules
-.git
-.env.local
-.env.*.local
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.DS_Store
+# Since we're only deploying the Client folder, ignore everything else
+api/
+server/
+.kiro/
+.git/
+.vscode/
 *.log
-.vscode
-.idea
-Client/react-pixel-perfect-showcase/node_modules
-Client/react-pixel-perfect-showcase/dist
-server/node_modules
-.kiro
+.DS_Store
+node_modules

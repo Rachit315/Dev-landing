@@ -1,33 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "Client/react-pixel-perfect-showcase/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist",
-        "buildCommand": "npm run build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/Client/react-pixel-perfect-showcase/dist/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/Client/react-pixel-perfect-showcase/dist/index.html"
-    }
-  ],
+  "buildCommand": "cd Client/react-pixel-perfect-showcase && npm install && npm run build",
+  "outputDirectory": "Client/react-pixel-perfect-showcase/dist",
   "functions": {
     "api/index.js": {
       "memory": 1024,

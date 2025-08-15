@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ThemeToggle } from "@/components/theme-toggle";
 import heroIllustration from "@/assets/dev-hero-illustration.png";
 import { Quote, Timer, Feather, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
@@ -79,10 +80,13 @@ const Index = () => {
           <a href="#top" className="flex items-center gap-2 font-extrabold tracking-tight story-link">
             <img src="/Logo.svg.svg" alt="Dev Quotes Logo" className="h-12 w-auto" />
           </a>
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#features" className="text-foreground/80 hover:text-foreground transition-colors">Features</a>
-            <a href="#submit" className="text-foreground/80 hover:text-foreground transition-colors">Submit</a>
-          </nav>
+          <div className="flex items-center gap-4 md:gap-6">
+            <nav className="hidden md:flex items-center gap-6 text-sm">
+              <a href="#features" className="text-foreground/80 hover:text-foreground transition-colors">Features</a>
+              <a href="#submit" className="text-foreground/80 hover:text-foreground transition-colors">Submit</a>
+            </nav>
+            <ThemeToggle className="flex-shrink-0" />
+          </div>
         </div>
       </header>
 

@@ -9,7 +9,8 @@
       "src": "Client/react-pixel-perfect-showcase/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "buildCommand": "npm run build"
       }
     }
   ],
@@ -19,18 +20,18 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
       "dest": "/Client/react-pixel-perfect-showcase/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/Client/react-pixel-perfect-showcase/dist/index.html"
     }
   ],
-  "env": {
-    "NODE_ENV": "production"
-  },
   "functions": {
     "api/index.js": {
       "memory": 1024,
       "maxDuration": 30
     }
-  },
-  "buildCommand": "cd Client/react-pixel-perfect-showcase && npm install && npm run build"
+  }
 }

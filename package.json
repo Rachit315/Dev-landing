@@ -5,10 +5,13 @@
   "main": "api/index.js",
   "scripts": {
     "dev": "concurrently \"pnpm run dev:client\" \"pnpm run dev:server\"",
-    "dev:client": "cd Client/react-pixel-perfect-showcase && pnpm run dev",
+    "dev:client": "pnpm --filter vite_react_shadcn_ts run dev",
     "dev:server": "cd server && pnpm start",
-    "build": "cd Client/react-pixel-perfect-showcase && pnpm install && pnpm run build",
-    "start": "node api/index.js"
+    "build": "pnpm --filter vite_react_shadcn_ts run build",
+    "build:client": "pnpm --filter vite_react_shadcn_ts run build",
+    "start": "node api/index.js",
+    "preview": "pnpm --filter vite_react_shadcn_ts run preview",
+    "deploy": "node deploy.js"
   },
   "keywords": ["react", "express", "mongodb", "vercel", "fullstack"],
   "author": "",

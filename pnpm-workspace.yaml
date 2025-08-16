@@ -1,0 +1,4 @@
+packages:
+  - 'Client/react-pixel-perfect-showcase'
+  - 'server'
+  - 'api'

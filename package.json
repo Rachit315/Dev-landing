@@ -4,10 +4,10 @@
   "description": "Full-stack landing page with React frontend and Express backend",
   "main": "api/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
-    "dev:client": "cd Client/react-pixel-perfect-showcase && npm run dev",
-    "dev:server": "cd server && npm start",
-    "build": "cd Client/react-pixel-perfect-showcase && npm install && npm run build",
+    "dev": "concurrently \"pnpm run dev:client\" \"pnpm run dev:server\"",
+    "dev:client": "cd Client/react-pixel-perfect-showcase && pnpm run dev",
+    "dev:server": "cd server && pnpm start",
+    "build": "cd Client/react-pixel-perfect-showcase && pnpm install && pnpm run build",
     "start": "node api/index.js"
   },
   "keywords": ["react", "express", "mongodb", "vercel", "fullstack"],
